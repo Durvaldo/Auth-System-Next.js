@@ -1,4 +1,4 @@
-import { authService } from "../src/services/auth/authService";
+import { withSession } from "../src/services/auth/session";
 
 function authPageSSR(props) {
    
@@ -16,20 +16,29 @@ function authPageSSR(props) {
 
 export default authPageSSR;
 
-export async function getServerSideProps(ctx) {
-    try {
-        const session = await authService.getSession(ctx)
-        return{
-            props: {
-                session,
-            },
-        }
-    } catch(err) {
-        return {
-            redirect: {
-                permanent: false,
-                destination: '/?error=401'
-            }
+// Decorator patern 
+export const getServerSideProps = withSession((ctx) =>{
+    return {
+        props: {
+            session: ctx.req.session
         }
     }
-}
+}) 
+
+// export async function getServerSideProps(ctx) {
+//     try {
+//         const session = await authService.getSession(ctx)
+//         return{
+//             props: {
+//                 session,
+//             },
+//         }
+//     } catch(err) {
+//         return {
+//             redirect: {
+//                 permanent: false,
+//                 destination: '/?error=401'
+//             }
+//         }
+//     }
+// }
