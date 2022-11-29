@@ -11,8 +11,20 @@ export const authService = {
             if(!respostaDoServidor.ok) throw new Error("Usuário ou senha inválido")
 
             const body = respostaDoServidor.body
-            console.log(body.data.access_token)
+            console.log('access_token', body.data.access_token)
             tokenService.save(body.data.access_token)
+
+            return body
+        })
+        .then(async ({ data }) => {
+            const { refresh_token } = data
+            const response = await HttpClient('/api/refresh', {
+                method: 'POST',
+                body: {
+                    refresh_token
+                }
+            })
+            console.log(response)
         })
     },
     async getSession(ctx = null) {
