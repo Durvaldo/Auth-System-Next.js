@@ -24,7 +24,8 @@ const controllers = {
     async regenerateTokens(req, res) {
         const ctx = { req, res }
         const cookies = nookies.get(ctx)
-        const refresh_token = cookies['REFRESH_TOKEN_NAME']
+        const refresh_token = cookies['REFRESH_TOKEN_NAME'] || req.body.refresh_token
+        console.log("/api/refresh [Regenerete tokens]", refresh_token)
 
         const refreshResponse = await HttpClient(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/refresh`, {
             method: 'POST',
@@ -57,7 +58,21 @@ const controllers = {
 
 const controlerBy = {
     POST: controllers.storeRefreshToken,
-    GET: controllers.regenerateTokens
+    GET: controllers.regenerateTokens,
+    PUT: controllers.regenerateTokens,
+    DELETE: (req, res) => {
+        const ctx = { req, res }
+        nookies.destroy(ctx, REFRESH_TOKEN, {
+            httpOnly: true,
+            sameSite: 'lax',
+            path: '/'
+        })
+        res.status(200).json({
+            data: {
+                message: 'deleted with success!'
+            }
+        })
+    }
 }
 
 export default function handle( request, response ) {
