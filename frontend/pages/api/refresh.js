@@ -1,5 +1,7 @@
 import nookies from 'nookies'
 import HttpClient from '../../src/infra/HttpClient/HttpClient'
+import { tokenService } from "../../src/services/auth/tokenService"
+
 
 const REFRESH_TOKEN = 'REFRESH_TOKEN_NAME'
 
@@ -9,7 +11,8 @@ const controllers = {
 
             nookies.set(ctx, REFRESH_TOKEN, req.body.refresh_token, {
                 httpOnly: true,
-                sameSite: 'lax'
+                sameSite: 'lax',
+                path: '/'
             })
 
             res.json({
@@ -30,14 +33,25 @@ const controllers = {
             }
         })
 
-        nookies.set(ctx, REFRESH_TOKEN, refreshResponse.body.data.refresh_token, {
-            httpOnly: true,
-            sameSite: 'lax'
-        })
+        if (refreshResponse.ok) {
+            nookies.set(ctx, REFRESH_TOKEN, refreshResponse.body.data.refresh_token, {
+                httpOnly: true,
+                sameSite: 'lax',
+                path: '/'
+            })
 
-        res.json({
-            refreshResponse
-        })
+            tokenService.save(refreshResponse.body.data.access_token, ctx)
+
+            res.status(200).json({
+                data: refreshResponse.body.data
+            })
+        } else {
+            res.status(401).json({
+                status: 401,
+                message: 'Não autorizado'
+            })
+        }    
+
     }
 }
 
